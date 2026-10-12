@@ -1,0 +1,60 @@
+# Правила команд Codex (Starlark). Самое строгое решение побеждает: forbidden > prompt > allow.
+
+# --- allow: безопасные команды проекта ---
+prefix_rule(
+    pattern = ["make", ["test", "lint", "wasm", "format", "fonts", "firmware-check"]],
+    decision = "allow",
+    match = ["make test", "make test T=menu", "make lint"],
+)
+prefix_rule(
+    pattern = ["npm", "run", ["test:e2e", "lint", "lint:js", "format", "check:agents", "sync:agents"]],
+    decision = "allow",
+    match = ["npm run test:e2e", "npm run lint"],
+)
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "add", "commit", "switch"]],
+    decision = "allow",
+    match = ["git commit -m 'feat: x'", "git status"],
+)
+
+# --- prompt: решает человек ---
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Публикация в удалённый репозиторий — только с подтверждения человека",
+    match = ["git push", "git push origin main"],
+)
+prefix_rule(
+    pattern = ["git", ["reset", "rebase", "tag"]],
+    decision = "prompt",
+    justification = "Переписывает историю или создаёт релиз",
+)
+prefix_rule(
+    pattern = ["npm", ["install", "i"]],
+    decision = "prompt",
+    justification = "Меняет зависимости и package-lock.json",
+)
+
+# --- forbidden: опасно или секреты ---
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr", "-r"]],
+    decision = "forbidden",
+    justification = "Рекурсивное удаление запрещено; удаляй файлы по одному и осознанно",
+    match = ["rm -rf build", "rm -rf /"],
+    not_match = ["rm build/unit_tests"],
+)
+prefix_rule(
+    pattern = [["cat", "less", "more", "head", "tail", "type", "bat", "nano", "vim"], [".env", ".env.local"]],
+    decision = "forbidden",
+    justification = "Чтение секретов запрещено",
+    match = ["cat .env", "head .env.local"],
+)
+prefix_rule(
+    pattern = ["git", "push", ["--force", "-f"]],
+    decision = "forbidden",
+    justification = "Force-push запрещён",
+)
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "forbidden",
+)

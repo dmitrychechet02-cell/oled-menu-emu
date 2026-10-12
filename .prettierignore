@@ -1,0 +1,4 @@
+web/build/
+web/AGENTS.md
+playwright-report/
+test-results/

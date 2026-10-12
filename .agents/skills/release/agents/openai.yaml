@@ -1,0 +1,3 @@
+# Codex: навык запускается только явно ($release), сам агент его не вызывает.
+policy:
+  allow_implicit_invocation: false

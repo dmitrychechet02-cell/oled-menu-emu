@@ -1,0 +1,26 @@
+# сборка
+build/
+web/build/
+
+# node / playwright
+node_modules/
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# секреты
+.env
+.env.*
+!.env.example
+
+# личные настройки агентов — не коммитим
+.claude/settings.local.json
+.claude/*.local.*
+CLAUDE.local.md
+.codex/*.local.toml
+
+# редакторы и ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

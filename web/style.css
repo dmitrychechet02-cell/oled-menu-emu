@@ -1,0 +1,277 @@
+:root {
+  --bg: #e9e6df;
+  --ink: #1d1d1b;
+  --muted: #6b675e;
+  --pcb: #17324d;
+  --pcb-edge: #0e2235;
+  --silk: #d9e4ee;
+  --glass: #050607;
+  --key: #2b2b2b;
+  --key-top: #3d3d3d;
+  --accent: #c8501e;
+  --panel: #f6f4ef;
+  --line: #d3cec3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151514;
+    --ink: #ecebe6;
+    --muted: #9b978d;
+    --panel: #1e1e1c;
+    --line: #34322e;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font:
+    15px/1.5 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(240px, 300px);
+  grid-template-areas:
+    "module panel"
+    "controls panel";
+  gap: 24px 32px;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.module {
+  grid-area: module;
+  position: relative;
+  background: var(--pcb);
+  border: 2px solid var(--pcb-edge);
+  border-radius: 10px;
+  padding: 34px 28px 30px;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 8%) inset,
+    0 18px 40px rgb(0 0 0 / 25%);
+}
+
+/* Монтажные отверстия по углам платы. */
+.module::before,
+.module::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 0 0 3px #b9a36a;
+}
+.module::before {
+  left: 10px;
+}
+.module::after {
+  right: 10px;
+}
+
+.pins {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  font:
+    600 9px/1 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    monospace;
+  color: var(--silk);
+  letter-spacing: 0.04em;
+}
+
+.bezel {
+  background: var(--glass);
+  border-radius: 4px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 6px #0a0b0c,
+    0 0 0 7px #2a3a4a;
+}
+
+#screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.silk {
+  margin-top: 14px;
+  text-align: center;
+  font:
+    600 11px/1 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    monospace;
+  color: var(--silk);
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+}
+
+.controls {
+  grid-area: controls;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+
+.key {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 0;
+  background: radial-gradient(circle at 35% 30%, var(--key-top), var(--key) 70%);
+  color: #f2f2f2;
+  font:
+    700 16px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  cursor: pointer;
+  box-shadow:
+    0 4px 0 #111,
+    0 8px 16px rgb(0 0 0 / 25%);
+  transition:
+    transform 60ms ease,
+    box-shadow 60ms ease;
+}
+
+.key:active,
+.key.pressed {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 #111,
+    0 3px 8px rgb(0 0 0 / 25%);
+}
+
+.key:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.key-ok {
+  background: radial-gradient(circle at 35% 30%, #e0703f, var(--accent) 70%);
+}
+
+.panel {
+  grid-area: panel;
+  align-self: start;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.panel h1 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+.hint {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font:
+    12px/1.5 ui-monospace,
+    Menlo,
+    monospace;
+  text-align: center;
+}
+
+.state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0 0 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.state dt {
+  color: var(--muted);
+}
+
+.state dd {
+  margin: 0;
+  font-family: ui-monospace, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.field select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.error {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fbe3d9;
+  color: #7a2a0b;
+  font-size: 13px;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "module"
+      "controls"
+      "panel";
+    padding: 24px 16px;
+  }
+
+  .module {
+    padding: 30px 14px 22px;
+  }
+
+  .pins {
+    gap: 6px;
+  }
+
+  .key {
+    width: 56px;
+    height: 56px;
+  }
+}

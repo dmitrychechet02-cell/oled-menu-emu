@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OLED 128×64 — эмулятор меню</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="module" aria-label="Модуль дисплея 2.42 дюйма">
+        <div class="pins" aria-hidden="true">
+          <span>GND</span><span>VCC</span><span>SCK</span><span>SDA</span><span>RES</span
+          ><span>DC</span><span>CS</span>
+        </div>
+        <div class="bezel">
+          <canvas
+            id="screen"
+            data-testid="screen"
+            width="640"
+            height="320"
+            aria-label="Экран 128 на 64 пикселя"
+          ></canvas>
+        </div>
+        <div class="silk" aria-hidden="true">SSD1309 · 2.42" · 128×64</div>
+      </section>
+
+      <section class="controls" aria-label="Кнопки устройства">
+        <button type="button" class="key" data-key="up" data-testid="key-up" title="↑">▲</button>
+        <button type="button" class="key" data-key="down" data-testid="key-down" title="↓">
+          ▼
+        </button>
+        <button type="button" class="key key-ok" data-key="ok" data-testid="key-ok" title="Enter">
+          OK
+        </button>
+        <button type="button" class="key" data-key="back" data-testid="key-back" title="Esc">
+          ◄
+        </button>
+      </section>
+
+      <aside class="panel">
+        <h1>Эмулятор OLED 128×64</h1>
+        <p class="hint">
+          Клавиатура: <kbd>↑</kbd> <kbd>↓</kbd> — выбор, <kbd>Enter</kbd> / <kbd>→</kbd> — OK,
+          <kbd>Esc</kbd> / <kbd>←</kbd> — назад.
+        </p>
+
+        <dl class="state" data-testid="state">
+          <dt>Экран</dt>
+          <dd data-testid="state-title">—</dd>
+          <dt>Глубина / пункт</dt>
+          <dd data-testid="state-nav">—</dd>
+          <dt>Контраст</dt>
+          <dd data-testid="state-contrast">—</dd>
+          <dt>Дисплей</dt>
+          <dd data-testid="state-power">—</dd>
+        </dl>
+
+        <label class="field">
+          Цвет пикселей
+          <select id="color" data-testid="color">
+            <option value="white">Белый</option>
+            <option value="blue">Синий</option>
+            <option value="yellow">Жёлтый</option>
+            <option value="green">Зелёный</option>
+          </select>
+        </label>
+
+        <p class="error" id="error" role="alert" hidden></p>
+      </aside>
+    </main>
+    <script type="module" src="emulator.js"></script>
+  </body>
+</html>

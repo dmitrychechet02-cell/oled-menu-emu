@@ -1,0 +1,15 @@
+# Проектные настройки Codex. Подхватываются, когда проект помечен как trusted.
+# Режим: агент свободно читает и правит файлы внутри репозитория (workspace-write),
+# без сети; всё, что выходит за песочницу, — с подтверждения (on-request).
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
+
+# Браузерная проверка UI (шаг 5): Playwright MCP.
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
+# Hooks описаны в .codex/hooks.json, правила команд — в .codex/rules/project.rules.
