@@ -15,6 +15,7 @@ void gfx_pixel(gfx_t *g, int16_t x, int16_t y, gfx_color_t c)
     if (x < 0 || y < 0 || x >= GFX_WIDTH || y >= GFX_HEIGHT) {
         return;
     }
+    // В SSD1309 байт хранит 8 вертикальных пикселей: выбираем страницу и бит строки.
     uint16_t idx = (uint16_t)((y / 8) * GFX_WIDTH + x);
     uint8_t mask = (uint8_t)(1u << (y & 7));
     switch (c) {

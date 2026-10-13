@@ -8,12 +8,13 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "build": "make wasm",
-    "start": "make wasm && node scripts/serve.mjs",
+    "build": "node scripts/build-wasm.mjs",
+    "start": "npm run build && node scripts/serve.mjs",
     "serve": "node scripts/serve.mjs",
-    "test": "make test",
-    "test:e2e": "make wasm && playwright test",
-    "lint": "make lint && eslint . && prettier --check web tests/e2e scripts",
+    "test": "node scripts/test-unit.mjs",
+    "test:e2e": "npm run build && playwright test",
+    "lint": "npm run lint:c && npm run lint:js",
+    "lint:c": "node scripts/lint-c.mjs",
     "lint:js": "eslint . && prettier --check web tests/e2e scripts",
     "format": "make format && prettier --write web tests/e2e scripts",
     "sync:agents": "node scripts/sync-agents.mjs",

@@ -3,6 +3,7 @@
 //   .claude/skills/<name>/SKILL.md  →  .agents/skills/<name>/SKILL.md
 //   .claude/rules/firmware.md       →  src/AGENTS.md   (вложенный AGENTS.md)
 //   .claude/rules/web.md            →  web/AGENTS.md
+//                                  →  tests/e2e/AGENTS.md
 // node scripts/sync-agents.mjs          — синхронизировать
 // node scripts/sync-agents.mjs --check  — только проверить (для CI), exit 1 при расхождении
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -31,6 +32,11 @@ pairs.push([
   stripFrontmatter,
 ]);
 pairs.push([join(ROOT, ".claude/rules/web.md"), join(ROOT, "web/AGENTS.md"), stripFrontmatter]);
+pairs.push([
+  join(ROOT, ".claude/rules/web.md"),
+  join(ROOT, "tests/e2e/AGENTS.md"),
+  stripFrontmatter,
+]);
 
 let stale = 0;
 for (const [src, dst, transform] of pairs) {

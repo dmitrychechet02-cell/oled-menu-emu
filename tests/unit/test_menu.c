@@ -174,6 +174,20 @@ TT_TEST(menu_choice_cycles)
     TT_ASSERT_EQ(choice, 0);
 }
 
+TT_TEST(menu_action_runs_once_per_ok)
+{
+    setup();
+    menu_handle_key(&nav, UI_KEY_DOWN);
+    menu_handle_key(&nav, UI_KEY_DOWN);
+    TT_ASSERT_EQ(actions, 0);
+    menu_handle_key(&nav, UI_KEY_OK);
+    TT_ASSERT_EQ(actions, 1);
+    TT_ASSERT(menu_current(&nav) == &root);
+    TT_ASSERT_EQ(menu_selected(&nav), 2);
+    menu_handle_key(&nav, UI_KEY_OK);
+    TT_ASSERT_EQ(actions, 2);
+}
+
 TT_TEST(menu_screen_receives_keys_and_closes_on_back)
 {
     setup();

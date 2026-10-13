@@ -72,6 +72,7 @@ function draw() {
     const [r, g, b] = color;
     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
     const ram = displayRam();
+    // Каждый бит framebuffer задаёт пиксель, который рисуем на canvas с масштабом SCALE.
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
         let on = (ram[(y >> 3) * WIDTH + x] >> (y & 7)) & 1;

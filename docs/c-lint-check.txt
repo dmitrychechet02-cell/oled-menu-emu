@@ -1,0 +1,7 @@
+ARM Cortex-M: freestanding, -Werror
+exit: 0
+WebAssembly: freestanding, без libc, -Werror
+Сборка WebAssembly через Zig (clang), предупреждения считаются ошибками.
+exit: 0
+clang-format: все .c/.h в src/ и tests/unit/
+exit: 0

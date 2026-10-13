@@ -65,7 +65,7 @@ test("навигация: Настройки → Яркость → измене
 });
 
 test("смена языка переключает все надписи на английский", async ({ page }) => {
-  await openEmulator(page);
+  const problems = await openEmulator(page);
   await page.evaluate(() => {
     const { press } = window.emu;
     press("down");
@@ -77,6 +77,7 @@ test("смена языка переключает все надписи на а
   await expect(page.getByTestId("state-title")).toHaveText("Settings");
   await page.evaluate(() => window.emu.press("back"));
   await expect(page.getByTestId("state-title")).toHaveText("Main menu");
+  expect(problems).toEqual([]);
 });
 
 test("экран показаний и таблица символов", async ({ page }) => {
@@ -99,11 +100,12 @@ test("экран показаний и таблица символов", async (
 });
 
 test("автосон через 30 с бездействия и пробуждение кнопкой", async ({ page }) => {
-  await openEmulator(page);
+  const problems = await openEmulator(page);
   await page.evaluate(() => window.emu.tick(30000));
   await expect(page.getByTestId("state-power")).toHaveText("спит");
 
   await page.getByTestId("key-down").click(); // только будит
   await expect(page.getByTestId("state-power")).toHaveText("включён");
   expect((await state(page)).selected).toBe(0);
+  expect(problems).toEqual([]);
 });

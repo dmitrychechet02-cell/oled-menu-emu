@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // PreToolUse: блокирует запись в защищённые файлы и любые shell-команды, трогающие .env.
-// Работает и в Claude Code, и в Codex: блокировка = exit 2 + причина в stderr.
+// Отказ передаётся JSON-решением: PowerShell преобразует native exit 2 в exit 1.
 import { basename } from "node:path";
 import { editedPaths, projectRoot, readHookInput, relPath } from "./lib.mjs";
 
@@ -43,8 +43,20 @@ function blockBash(command) {
 }
 
 function block(reason) {
-  process.stderr.write(`[protect-files] Заблокировано: ${reason}\n`);
-  process.exit(2);
+  const output = {
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: `[protect-files] Заблокировано: ${reason}`,
+    },
+  };
+  // ASCII JSON сохраняет кириллицу даже при перекодировке вывода Windows PowerShell.
+  const json = JSON.stringify(output).replace(
+    /[\u007f-\uffff]/g,
+    (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+  process.stdout.write(`${json}\n`);
+  process.exit(0);
 }
 
 const input = await readHookInput();

@@ -15,12 +15,13 @@ WebAssembly и работает в браузере, а тот же код бе�
 ```bash
 npm install
 npx playwright install chromium
-npm start                # собрать emu.wasm и открыть http://localhost:8080
+npm start                # собрать emu.wasm и запустить сервер; открыть http://localhost:8080
 ```
 
 | Команда               | Что делает                                        |
 | --------------------- | ------------------------------------------------- |
-| `make test`           | unit-тесты (38), `make test T=menu` — по подстроке |
+| `npm test`            | C unit-тесты (39); Windows — LLVM-MinGW, Unix — Make |
+| `make test`           | C unit-тесты через Make, `make test T=menu` — по подстроке |
 | `npm run test:e2e`    | e2e в Chromium (5 сценариев)                      |
 | `make lint`           | clang-format + сборка wasm и ARM с `-Werror`      |
 | `npm run lint`        | всё: C + ESLint + Prettier                        |
@@ -28,6 +29,56 @@ npm start                # собрать emu.wasm и открыть http://loca
 
 **Windows:** проще всего работать в WSL2 (Ubuntu): `sudo apt install build-essential clang lld clang-format`.
 Через MSYS2 тоже работает (`pacman -S make mingw-w64-ucrt-x86_64-clang mingw-w64-ucrt-x86_64-lld`).
+
+Для браузера и e2e можно работать прямо в PowerShell без Make: нужен Node.js ≥ 20.11
+и `clang` с wasm32/lld в PATH либо распакованный Zig 0.14.1. Для Zig укажи путь
+в текущей сессии (в этом рабочем каталоге он уже распакован в `build/tools/`):
+
+```powershell
+cd C:\Users\chechet.d\Desktop\oled-menu-emu
+$env:ZIG_EXE = "$PWD\build\tools\zig-x86_64-windows-0.14.1\zig.exe"
+npm install --package-lock=false --ignore-scripts
+npx playwright install chromium
+npm run test:e2e
+```
+
+На другом компьютере замени путь к `zig.exe` своим. Если установлен `clang`,
+сборка использует его; иначе — `ZIG_EXE` или локальный путь выше. Флаги предупреждений,
+`-Werror`, freestanding и отсутствие libc сохраняются. `npm start` использует ту же
+сборку. На Linux/macOS `npm run build` вызывает `make wasm`.
+Для `make lint` нужны инструменты из быстрого старта; ниже есть эквивалент через npm
+для PowerShell.
+
+C unit-тесты можно запускать отдельно в PowerShell через
+[LLVM-MinGW UCRT](https://github.com/mstorsjo/llvm-mingw/releases): распакуй Windows
+x86_64 UCRT-архив в `build/tools/` и укажи путь к его `clang.exe`:
+
+```powershell
+$env:UNIT_CC = "$PWD\build\tools\llvm-mingw-20261006-ucrt-x86_64\bin\clang.exe"
+npm test                         # все 39 C unit-тестов
+npm test -- menu_value_edit       # один тест по подстроке
+```
+
+В этом рабочем каталоге используется LLVM-MinGW 20261006. На другом компьютере
+замени путь на свой. Сборка сохраняет `-Werror`, AddressSanitizer и UBSan;
+ошибки sanitizer завершают прогон с ненулевым кодом. Лог — `build/unit-tests.log`.
+Zig не используется для этой команды: в локальной версии его ASan не обнаружил
+контрольное переполнение heap. На Linux/macOS `npm test` вызывает `make test`.
+
+HTML-отчёт после тестов: `npx playwright show-report`.
+
+Полный C-линтер в PowerShell (использует тот же LLVM-MinGW и Zig):
+
+```powershell
+npm run lint:c       # ARM freestanding + сборка wasm + формат всех .c/.h
+npm run lint         # C-проверки выше + ESLint + Prettier
+```
+
+Пути по умолчанию — локальные каталоги `build/tools/`, описанные выше. Для другой
+установки задай `C_CLANG` (полный путь к clang.exe), `C_CLANG_FORMAT` (к clang-format.exe)
+и `ZIG_EXE`. Проверки используют флаги Makefile, включая `-Werror`; форматирование
+проверяется через `--dry-run --Werror` во всех файлах `src/` и `tests/unit/`.
+На Unix `npm run lint:c` вызывает `make lint`. Лог Windows-прогона — `build/c-lint.log`.
 
 ## Что внутри
 
@@ -59,7 +110,7 @@ docs/        план, журнал, отчёт по ДЗ
 | `AGENTS.md`                         | Codex, Claude Code (через `CLAUDE.md`) | всегда: стек, команды, конвенции, запреты |
 | `.claude/rules/firmware.md`         | Claude Code               | только при работе с `src/**/*.c,h`      |
 | `.claude/rules/web.md`              | Claude Code               | только при работе с `web/**`, `tests/e2e/**` |
-| `src/AGENTS.md`, `web/AGENTS.md`    | Codex                     | только внутри этих папок                |
+| `src/AGENTS.md`, `web/AGENTS.md`, `tests/e2e/AGENTS.md` | Codex | только внутри соответствующих папок |
 | `.claude/skills/*`, `.agents/skills/*` | Claude Code / Codex    | навыки (см. ниже)                       |
 | `docs/plan.md`, `docs/memory.md`    | оба                       | в начале и в конце каждой сессии        |
 
@@ -68,18 +119,41 @@ docs/        план, журнал, отчёт по ДЗ
 - `add-menu-screen` — агент вызывает сам: новый экран/пункт меню со строками, тестами и e2e;
 - `check-ui` — агент вызывает сам: проверка эмулятора в браузере через Playwright MCP;
 - `release` — только вручную: `/release 0.2.0` в Claude Code, `$release` в Codex.
+  Готовит версию, журнал и коммит в `feat/*` или `fix/*`; слияние в `main`, тег
+  и публикацию выполняет человек.
 
 ### Какие у него права
 
 | Уровень | Claude Code (`.claude/settings.json`) | Codex (`.codex/rules/project.rules`) |
 | ------- | ------------------------------------- | ------------------------------------ |
-| allow   | `make test/lint/wasm/format`, `npm run test:e2e/lint`, `git add/commit/diff/status`, Playwright MCP | те же команды через `prefix_rule(... "allow")` |
+| allow   | `make test/lint/wasm/format`, `npm run test:e2e/lint`, `git add/commit/diff/status`, Playwright MCP | `make test/lint/wasm/format`, `npm run test:e2e/lint/lint:js/check:agents/sync:agents`, `git add/commit/diff/status` через prefix_rule |
 | ask     | `git push`, `git tag`, `git reset`, `git rebase`, `npm install` | `git push`, `reset/rebase/tag`, `npm install` → `"prompt"` |
 | deny    | чтение `.env*` и `secrets/`, `rm -rf`, `sudo`, `git push --force`, `curl/wget` | `rm -rf`, `cat .env`, `git push --force`, `sudo` → `"forbidden"` |
 
 **Режим по умолчанию:** Claude Code — `acceptEdits`, Codex — `workspace-write` +
-`on-request`: правки файлов внутри репозитория идут без вопросов (их сразу страхуют hooks и
-тесты), а любая команда вне allow-списка и всё необратимое требует подтверждения человека.
+`on-request`. Такой выбор позволяет выполнять обычные правки и проверки проекта
+в песочнице, сохраняя контроль над расширением доступа.
+
+У Codex песочница и правила команд — разные механизмы. `workspace-write` ограничивает
+запись разрешёнными каталогами; проектный конфиг отключает сеть в песочнице.
+`on-request` позволяет агенту запросить расширение доступа, когда оно требуется.
+Отсутствие команды в allow-списке само по себе не означает обязательного вопроса:
+команды внутри песочницы могут выполняться автоматически. Правила `.rules`
+управляют запуском команд вне песочницы: `allow` разрешает совпавшую команду
+без отдельного вопроса. Явные правила
+`prompt` требуют подтверждения, `forbidden` запрещают совпавшую команду;
+при нескольких совпадениях действует самое строгое решение. См.
+[песочницу и подтверждения](https://learn.chatgpt.com/docs/sandboxing) и
+[правила команд](https://learn.chatgpt.com/docs/agent-configuration/rules).
+
+Таблица выше перечисляет примеры из проектных конфигов, а не все возможные способы
+доступа. Для Codex запрет чтения `.env` в правилах команд охватывает конкретные
+префиксы; hook дополнительно блокирует команды с `.env` и защищённые правки.
+Это не файловая изоляция секретов от любого инструмента. AGENTS.md отдельно
+запрещает агенту читать, создавать и менять секреты, а также выполнять push:
+публикация остаётся человеку даже при наличии ask/prompt в конфиге.
+Итоговые права сессии также зависят от доверия проекту, пользовательских
+настроек, политик приложения и выданных разрешений.
 
 Личные настройки — в `.claude/settings.local.json` и `CLAUDE.local.md`, они в `.gitignore`.
 
@@ -99,6 +173,7 @@ docs/        план, журнал, отчёт по ДЗ
 ### Как запустить тесты
 
 ```bash
+npm test                       # все unit-тесты, включая Windows с LLVM-MinGW
 make test                       # все unit-тесты
 make test T=ssd1309             # тесты драйвера дисплея
 npm run test:e2e                # e2e в браузере

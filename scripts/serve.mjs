@@ -2,7 +2,7 @@
 // node scripts/serve.mjs [порт]   (по умолчанию 8080)
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, relative, resolve, sep } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..", "web");
 const PORT = Number(process.argv[2] ?? process.env.PORT ?? 8080);
@@ -17,10 +17,17 @@ const TYPES = {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
-  let path = normalize(decodeURIComponent(url.pathname));
+  let path;
+  try {
+    path = decodeURIComponent(url.pathname).replaceAll("\\", "/");
+  } catch {
+    res.writeHead(400).end("bad request");
+    return;
+  }
   if (path.endsWith("/")) path += "index.html";
   const file = join(ROOT, path);
-  if (!file.startsWith(ROOT)) {
+  const local = relative(ROOT, file);
+  if (local === ".." || local.startsWith(`..${sep}`)) {
     res.writeHead(403).end("forbidden");
     return;
   }
